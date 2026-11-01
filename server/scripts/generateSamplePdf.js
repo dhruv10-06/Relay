@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,100 +7,102 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function generateSamplePdf() {
-  const pdfDoc = await PDFDocument.create();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-  const page = pdfDoc.addPage([600, 800]);
-  const { height } = page.getSize();
-
-  let y = height - 50;
-  const margin = 50;
-
-  // Header
-  page.drawText('PROJECT NEXUS: ARCHITECTURE DECISION RECORD', {
-    x: margin,
-    y,
-    size: 16,
-    font: boldFont,
-    color: rgb(0.05, 0.2, 0.4),
+  const browser = await puppeteer.launch({
+    executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    headless: true,
   });
 
-  y -= 25;
-  page.drawText('Document ID: ADR-042 | Status: Approved | Date: Oct 14, 2026', {
-    x: margin,
-    y,
-    size: 10,
-    font: font,
-    color: rgb(0.3, 0.3, 0.3),
+  const page = await browser.newPage();
+  await page.setContent(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1e293b;
+            line-height: 1.6;
+            padding: 40px;
+          }
+          h1 {
+            color: #0f172a;
+            font-size: 22px;
+            border-bottom: 2px solid #0d9488;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          }
+          .meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 20px;
+          }
+          h2 {
+            font-size: 16px;
+            color: #0f766e;
+            margin-top: 24px;
+            margin-bottom: 8px;
+          }
+          p {
+            font-size: 13px;
+            margin: 6px 0;
+          }
+          .note {
+            background-color: #f1f5f9;
+            padding: 10px;
+            border-left: 3px solid #0d9488;
+            font-size: 12px;
+            margin: 12px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Architecture Decision Record: ADR-042</h1>
+        <div class="meta">
+          <strong>Project:</strong> Nexus Core Ledger & Payment Gateway Migration | 
+          <strong>Status:</strong> Approved | 
+          <strong>Author:</strong> Elena Vance (Lead Solutions Architect) | 
+          <strong>Date:</strong> October 14, 2026
+        </div>
+
+        <h2>1. Context & Problem Statement</h2>
+        <p>The legacy ledger relies on a monolithic DynamoDB NoSQL cluster with custom eventual-consistency resolution logic. This has caused reconciliation discrepancies exceeding $42,000 during high-throughput flash events. The engineering organization requires a deterministic, ACID-compliant ledger storage solution capable of supporting 8,500 financial transactions per second with real-time auditability.</p>
+
+        <h2>2. Approved Decision & Rationale</h2>
+        <p>We have decided to adopt PostgreSQL 16 with TimescaleDB hypertables for all double-entry transaction ledgers, replacing the DynamoDB store.</p>
+        <div class="note">
+          <strong>Documented Rationale:</strong><br>
+          1. Strict ACID Compliance: Immediate row-level locking and strict serializability are mandatory for cross-border payment settlement.<br>
+          2. Audit Query Performance: TimescaleDB hypertables provide native chunking by timestamp, reducing 90-day forensic audit query execution times from 4 minutes to under 650ms.<br>
+          3. Regulatory Requirements: Compliance standards (FINRA & European Central Bank DORA directives) require verifiable point-in-time state reconstruction.
+        </div>
+        <p><strong>Lead Owner:</strong> Elena Vance (Lead Solutions Architect)</p>
+        <p><strong>Target Delivery:</strong> Sprint 43 (October 24, 2026)</p>
+        <p><strong>Status:</strong> Approved and Implementation In Progress</p>
+
+        <h2>3. External Dependencies & Blockers</h2>
+        <p>Critical Dependency: Core Banking Gateway API v3.4 release by 3rd-party vendor (FinVance Inc.). Dependency Status: UNRESOLVED. Vendor support ticket #FV-9021 remains open without an SLA commitment or staging endpoint delivery date.</p>
+
+        <h2>4. Key Management & Security</h2>
+        <p>A decision was recorded to rotate root AWS KMS customer-managed signing keys on a 14-day cycle. (Note: No rationale or compliance justification was provided for this 14-day frequency; standard security policy specifies 90-day rotation).</p>
+      </body>
+    </html>
+  `);
+
+  const pdfBuffer = await page.pdf({
+    format: 'A4',
+    margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' },
+    printBackground: true,
   });
 
-  y -= 20;
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: 550, y },
-    thickness: 1,
-    color: rgb(0.8, 0.8, 0.8),
-  });
+  await browser.close();
 
-  y -= 30;
-  const sections = [
-    {
-      title: '1. Problem Statement & Legacy Flaws',
-      body: 'Legacy DynamoDB implementation suffered from eventual consistency reconciliation anomalies during high traffic bursts, resulting in $42,000 ledger drift. A strictly ACID-compliant transactional persistence engine is required.',
-    },
-    {
-      title: '2. Approved Decision: PostgreSQL with TimescaleDB',
-      body: 'We formally adopt PostgreSQL 16 with TimescaleDB hypertables for all double-entry ledger accounts. Rationale: Strict ACID transactions, native chunked audit queries under 650ms, and compliance with European Central Bank DORA directives.',
-    },
-    {
-      title: '3. Lead Owner & Delivery Milestone',
-      body: 'Lead Architect: Elena Vance. Target Sprint: Sprint 43 (October 24, 2026). Status: Approved and in active execution.',
-    },
-    {
-      title: '4. External Blockers & Third-Party Dependencies',
-      body: 'Critical dependency: Core Banking Gateway API v3.4 by FinVance Inc. Status: UNRESOLVED. Vendor support ticket #FV-9021 remains open with no SLA commitment or staging endpoint delivery date.',
-    },
-    {
-      title: '5. Cryptographic Key Management',
-      body: 'Decision recorded to rotate AWS KMS customer-managed signing keys on a 14-day cycle. (Note: No rationale or compliance justification was provided for this 14-day frequency; standard security policy specifies 90 days).',
-    },
-  ];
-
-  for (const sec of sections) {
-    page.drawText(sec.title, {
-      x: margin,
-      y,
-      size: 12,
-      font: boldFont,
-      color: rgb(0.1, 0.3, 0.5),
-    });
-    y -= 18;
-
-    // Simple text wrap
-    const words = sec.body.split(' ');
-    let line = '';
-    for (const word of words) {
-      if ((line + word).length > 70) {
-        page.drawText(line, { x: margin, y, size: 9, font, color: rgb(0.2, 0.2, 0.2) });
-        y -= 14;
-        line = '';
-      }
-      line += word + ' ';
-    }
-    if (line) {
-      page.drawText(line, { x: margin, y, size: 9, font, color: rgb(0.2, 0.2, 0.2) });
-      y -= 25;
-    }
-  }
-
-  const pdfBytes = await pdfDoc.save();
-  const outDir = path.resolve(__dirname, '../../sample_documents');
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-
-  const destPath = path.join(outDir, 'ADR-042_Ledger_Architecture.pdf');
-  fs.writeFileSync(destPath, pdfBytes);
-  console.log(`Generated PDF at: ${destPath}`);
+  const out1 = path.resolve(__dirname, '../../sample_documents/ADR-042_Ledger_Architecture.pdf');
+  const out2 = path.resolve(__dirname, '../sample_data/ADR-042_Ledger_Architecture.pdf');
+  
+  fs.writeFileSync(out1, pdfBuffer);
+  fs.writeFileSync(out2, pdfBuffer);
+  console.log(`Generated standard compliant PDF at: ${out1} and ${out2} (${pdfBuffer.length} bytes)`);
 }
 
 generateSamplePdf().catch(console.error);

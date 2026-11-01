@@ -25,6 +25,7 @@ import {
   Eye,
   Download,
   AlertOctagon,
+  FileCheck2,
 } from 'lucide-react';
 import { KnowledgeStateBadge, ValidationBadge, ReviewStatusBadge } from '../components/StateBadge';
 import EvidenceModal from '../components/EvidenceModal';
@@ -76,12 +77,6 @@ export default function WorkspacePage({ project, onBackToDashboard }) {
   // File Upload input ref
   const fileInputRef = useRef(null);
 
-  // Initial Load
-  useEffect(() => {
-    loadWorkspaceData();
-    fetchSampleFiles();
-  }, [project.id]);
-
   const loadWorkspaceData = async () => {
     setIsLoading(true);
     try {
@@ -115,6 +110,12 @@ export default function WorkspacePage({ project, onBackToDashboard }) {
       console.warn('Could not load sample files:', err);
     }
   };
+
+  // Initial Load
+  useEffect(() => {
+    loadWorkspaceData();
+    fetchSampleFiles();
+  }, [project.id]);
 
   // Upload Handlers
   const handleFileUpload = async (e) => {

@@ -2,23 +2,23 @@ import React, { useState } from 'react';
 import { X, Check, Save, AlertCircle } from 'lucide-react';
 
 export default function FindingEditModal({ finding, onSave, onClose }) {
-  if (!finding) return null;
-
   const [formData, setFormData] = useState({
-    title: finding.title || '',
-    description: finding.description || '',
-    rationale: finding.rationale || '',
-    owner: finding.owner || '',
-    deadline: finding.deadline || '',
-    status: finding.status || 'pending',
-    knowledgeState: finding.knowledgeState || 'supported',
-    evidenceValidation: finding.evidenceValidation || 'unverified',
-    continuationTimeframe: finding.continuationTimeframe || 'None',
-    continuationAction: finding.continuationAction || '',
-    reviewNote: finding.reviewNote || '',
+    title: finding?.title || '',
+    description: finding?.description || '',
+    rationale: finding?.rationale || '',
+    owner: finding?.owner || '',
+    deadline: finding?.deadline || '',
+    status: finding?.status || 'pending',
+    knowledgeState: finding?.knowledgeState || 'supported',
+    evidenceValidation: finding?.evidenceValidation || 'unverified',
+    continuationTimeframe: finding?.continuationTimeframe || 'None',
+    continuationAction: finding?.continuationAction || '',
+    reviewNote: finding?.reviewNote || '',
   });
 
   const [reviewAction, setReviewAction] = useState('accepted');
+
+  if (!finding) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;

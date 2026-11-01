@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import WorkspacePage from './pages/WorkspacePage';
 import {
   getProjects,
+  getProject,
   createProject,
   deleteProject,
   loadSampleScenario,
@@ -13,7 +14,7 @@ import {
 export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard' | 'workspace'
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [activeProject, setActiveProject] = useState(null);
   const [isSampleLoading, setIsSampleLoading] = useState(false);
 
   useEffect(() => {
@@ -24,21 +25,34 @@ export default function App() {
     try {
       const data = await getProjects();
       setProjects(data);
+      return data;
     } catch (err) {
       console.warn('Could not fetch projects:', err);
+      return [];
     }
   };
 
-  const handleSelectProject = (projectId) => {
-    setSelectedProjectId(projectId);
-    setCurrentView('workspace');
+  const handleSelectProject = async (projectId) => {
+    const existing = projects.find((p) => p.id === projectId);
+    if (existing) {
+      setActiveProject(existing);
+      setCurrentView('workspace');
+    } else {
+      try {
+        const p = await getProject(projectId);
+        setActiveProject(p);
+        setCurrentView('workspace');
+      } catch (e) {
+        console.error('Failed to open project:', e);
+      }
+    }
   };
 
   const handleCreateProject = async (formData) => {
     try {
       const created = await createProject(formData);
       await fetchProjects();
-      setSelectedProjectId(created.id);
+      setActiveProject(created);
       setCurrentView('workspace');
     } catch (err) {
       alert('Failed to create project: ' + err.message);
@@ -49,8 +63,8 @@ export default function App() {
     try {
       await deleteProject(projectId);
       await fetchProjects();
-      if (selectedProjectId === projectId) {
-        setSelectedProjectId(null);
+      if (activeProject && activeProject.id === projectId) {
+        setActiveProject(null);
         setCurrentView('dashboard');
       }
     } catch (err) {
@@ -63,8 +77,8 @@ export default function App() {
     try {
       const result = await loadSampleScenario(true, false);
       await fetchProjects();
-      if (result.project && result.project.id) {
-        setSelectedProjectId(result.project.id);
+      if (result.project) {
+        setActiveProject(result.project);
         setCurrentView('workspace');
       }
     } catch (err) {
@@ -74,13 +88,17 @@ export default function App() {
     }
   };
 
-  const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500 selection:text-slate-950">
       <Navbar
         currentView={currentView}
-        setCurrentView={setCurrentView}
+        setCurrentView={(view) => {
+          if (view === 'dashboard') {
+            fetchProjects();
+            setActiveProject(null);
+          }
+          setCurrentView(view);
+        }}
         onLoadSample={handleLoadSample}
         isSampleLoading={isSampleLoading}
       />
@@ -88,7 +106,10 @@ export default function App() {
       <main className="flex-1">
         {currentView === 'landing' && (
           <LandingPage
-            onOpenDashboard={() => setCurrentView('dashboard')}
+            onOpenDashboard={() => {
+              fetchProjects();
+              setCurrentView('dashboard');
+            }}
             onLoadSample={handleLoadSample}
             isSampleLoading={isSampleLoading}
           />
@@ -105,11 +126,12 @@ export default function App() {
           />
         )}
 
-        {currentView === 'workspace' && selectedProject && (
+        {currentView === 'workspace' && activeProject && (
           <WorkspacePage
-            project={selectedProject}
+            project={activeProject}
             onBackToDashboard={() => {
               fetchProjects();
+              setActiveProject(null);
               setCurrentView('dashboard');
             }}
           />

@@ -1,0 +1,4 @@
+Vulnerability_ID,Package_Name,Severity,Status,Assignee,Target_Fix_Date
+VULN-001,openssl,Critical,Open,Marcus Brody,2026-11-05
+VULN-002,lodash,Medium,Resolved,Devon Patel,2026-10-20
+VULN-003,jsonwebtoken,High,Unassigned,TBD,2026-11-12

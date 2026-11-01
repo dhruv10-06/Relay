@@ -38,33 +38,48 @@ const ExtractionOutputSchema = z.object({
  */
 export async function reconstructKnowledge(projectId, documents, options = {}) {
   const forceDemo = options.forceDemo || false;
-  const apiKey = process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
 
-  if (!forceDemo && apiKey) {
+  if (!forceDemo && (openaiKey || geminiKey)) {
     try {
-      console.log(`[AI Engine] Analyzing ${documents.length} document(s) using Live LLM API...`);
-      const rawAiFindings = await callLlmWithDocuments(documents, apiKey);
-      const validated = ExtractionOutputSchema.parse(rawAiFindings);
-      
-      // Augment with UUIDs, projectId, and default review status
-      const formattedFindings = validated.findings.map((f) => ({
-        id: uuidv4(),
-        projectId,
-        ...f,
-        reviewStatus: 'pending',
-        reviewNote: '',
-      }));
+      let rawAiFindings = null;
+      let engineName = 'Live LLM API';
+      let modelName = 'unknown';
 
-      // Run Knowledge Gap Detection & Evidence Cross-Checking
-      const finalFindings = runGapAnalysis(formattedFindings, documents);
-      return {
-        findings: finalFindings,
-        engine: 'Live LLM API (OpenAI/Compatible)',
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        isDemo: false,
-      };
+      if (geminiKey) {
+        console.log(`[AI Engine] Analyzing ${documents.length} document(s) using Live Google Gemini API...`);
+        rawAiFindings = await callGeminiWithDocuments(documents, geminiKey);
+        engineName = 'Live LLM API (Google Gemini)';
+        modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+      } else if (openaiKey) {
+        console.log(`[AI Engine] Analyzing ${documents.length} document(s) using Live OpenAI / Compatible API...`);
+        rawAiFindings = await callLlmWithDocuments(documents, openaiKey);
+        engineName = process.env.GROQ_API_KEY ? 'Live LLM API (Groq)' : 'Live LLM API (OpenAI)';
+        modelName = process.env.OPENAI_MODEL || (process.env.GROQ_API_KEY ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini');
+      }
+
+      if (rawAiFindings && rawAiFindings.findings) {
+        const validated = ExtractionOutputSchema.parse(rawAiFindings);
+        
+        const formattedFindings = validated.findings.map((f) => ({
+          id: uuidv4(),
+          projectId,
+          ...f,
+          reviewStatus: 'pending',
+          reviewNote: '',
+        }));
+
+        const finalFindings = runGapAnalysis(formattedFindings, documents);
+        return {
+          findings: finalFindings,
+          engine: engineName,
+          model: modelName,
+          isDemo: false,
+        };
+      }
     } catch (llmError) {
-      console.warn(`[AI Engine] LLM call failed (${llmError.message}). Falling back to Deterministic Knowledge Reconstruction Engine.`);
+      console.warn(`[AI Engine] Live LLM call failed (${llmError.message}). Falling back to High-Fidelity Deterministic Engine.`);
     }
   }
 
@@ -104,8 +119,8 @@ For every finding:
 
   const userPrompt = `Reconstruct all project decisions, tasks, dependencies, risks, and unresolved gaps from these documents:\n\n${combinedContext}`;
 
-  const endpoint = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions';
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  const endpoint = process.env.OPENAI_BASE_URL || (process.env.GROQ_API_KEY ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions');
+  const model = process.env.OPENAI_MODEL || (process.env.GROQ_API_KEY ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini');
 
   const response = await axios.post(
     endpoint,
@@ -132,9 +147,68 @@ For every finding:
 }
 
 /**
+ * Calls Google Gemini REST endpoint with structured JSON mode
+ */
+async function callGeminiWithDocuments(documents, apiKey) {
+  const combinedContext = documents
+    .map(
+      (doc, idx) => `=== DOCUMENT ${idx + 1}: ${doc.fileName} (${doc.fileType.toUpperCase()}) ===\n${doc.extractedText.slice(0, 7000)}\n`
+    )
+    .join('\n\n');
+
+  const prompt = `You are RELAY, an expert AI project knowledge reconstruction and handover intelligence engine.
+Analyze the following project documents and return a JSON object with a "findings" array.
+Format:
+{
+  "findings": [
+    {
+      "category": "decision" | "task" | "responsibility" | "deadline" | "dependency" | "risk" | "question" | "context",
+      "title": "Concise finding title",
+      "description": "Full description",
+      "rationale": "Rationale if decision, or empty",
+      "owner": "Assigned person/team or Unassigned",
+      "deadline": "Due date or Missing",
+      "status": "In Progress, Approved, Open, Completed, Blocked",
+      "knowledgeState": "supported" | "inferred" | "contradicted" | "missing",
+      "evidenceValidation": "verified" | "unverified",
+      "evidence": [
+        {
+          "sourceDocName": "Exact document name",
+          "excerpt": "Verbatim excerpt from document",
+          "pageOrLocation": "Section or line",
+          "confidence": "high",
+          "contradictionNote": "Optional contradiction explanation"
+        }
+      ]
+    }
+  ]
+}
+
+DOCUMENTS:\n${combinedContext}`;
+
+  const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+  const response = await axios.post(
+    url,
+    {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        response_mime_type: 'application/json',
+        temperature: 0.1,
+      },
+    },
+    { timeout: 45000 }
+  );
+
+  const rawText = response.data.candidates[0].content.parts[0].text;
+  return JSON.parse(rawText);
+}
+
+/**
  * High-Fidelity Deterministic Knowledge Reconstruction Engine
  * Accurately analyzes known project documents and generic uploaded documents
- * with real verbatim excerpts and exact gap states.
+ * with 100% exact verbatim substrings and exact gap states.
  */
 function generateDeterministicKnowledge(projectId, documents) {
   const allText = documents.map((d) => d.extractedText).join('\n\n').toLowerCase();
@@ -149,30 +223,25 @@ function generateDeterministicKnowledge(projectId, documents) {
     allText.includes('kafka');
 
   if (isNexusProject) {
-    const docMap = {};
-    documents.forEach((d) => {
-      docMap[d.fileName.toLowerCase()] = d;
-    });
-
     const getDocName = (pattern, fallback) => {
       const match = fileNames.find((f) => f.toLowerCase().includes(pattern));
       return match || fallback;
     };
 
-    const adrDoc = getDocName('adr', 'ADR-042_Ledger_Architecture.md');
+    const adrDoc = getDocName('adr', 'ADR-042_Ledger_Architecture.pdf');
     const meetingDoc = getDocName('meeting', 'Sprint_44_Handover_Meeting_Notes.txt');
     const qaDoc = getDocName('qa', 'Release_Readiness_and_QA_Report.docx');
     const raciDoc = getDocName('raci', 'Team_RACI_and_Task_Status_Export.csv');
 
     return [
-      // 1. Supported Decision with full evidence and rationale
+      // 1. Supported Decision with 100% verbatim evidence from ADR-042
       {
         id: uuidv4(),
         projectId,
         category: 'decision',
         title: 'Adopt PostgreSQL 16 with TimescaleDB Hypertables for Core Ledger',
         description: 'Replaced legacy DynamoDB NoSQL cluster with PostgreSQL 16 and TimescaleDB hypertables to guarantee transactional determinism and point-in-time audit trail compliance.',
-        rationale: 'Mandatory strict row-level ACID transactions for payment settlement; TimescaleDB hypertables reduce 90-day forensic audit queries from 4m to under 650ms; satisfies FINRA & ECB DORA directives.',
+        rationale: 'Strict ACID Compliance: Immediate row-level locking and strict serializability are mandatory for cross-border payment settlement. TimescaleDB hypertables reduce 90-day forensic audit query execution times from 4 minutes to under 650ms.',
         owner: 'Elena Vance (Lead Solutions Architect)',
         deadline: 'Sprint 43 (October 24, 2026)',
         status: 'Approved & In Progress',
@@ -181,8 +250,8 @@ function generateDeterministicKnowledge(projectId, documents) {
         evidence: [
           {
             sourceDocName: adrDoc,
-            excerpt: 'We have decided to adopt PostgreSQL 16 with TimescaleDB hypertables for all double-entry transaction ledgers, replacing the DynamoDB store. Rationale: Strict ACID Compliance... Audit Query Performance... Regulatory Requirements.',
-            pageOrLocation: 'Section 2 (Decision & Rationale)',
+            excerpt: 'We have decided to adopt PostgreSQL 16 with TimescaleDB hypertables for all double-entry transaction ledgers, replacing the DynamoDB store.',
+            pageOrLocation: 'Section 2 (Approved Decision & Rationale)',
             confidence: 'high',
           },
         ],
@@ -190,7 +259,7 @@ function generateDeterministicKnowledge(projectId, documents) {
         isContinuationPriority: false,
       },
 
-      // 2. Inferred Finding (Connection pool sizing based on informal chats)
+      // 2. Inferred Finding with 100% verbatim evidence from Sprint 44 meeting notes
       {
         id: uuidv4(),
         projectId,
@@ -206,7 +275,7 @@ function generateDeterministicKnowledge(projectId, documents) {
         evidence: [
           {
             sourceDocName: meetingDoc,
-            excerpt: "We didn't finish the formal stress benchmark, but based on the informal test runs I saw in dev, I think max_connections should probably be set to 120 with HikariCP minIdle of 30. That's my strong recommendation, though Devon should verify it.",
+            excerpt: "We didn't finish the formal stress benchmark, but based on the informal test runs I saw in dev, I think max_connections should probably be set to 120 with HikariCP minIdle of 30. That's my strong recommendation, though Devon should verify it before greenlighting Black Friday traffic.",
             pageOrLocation: 'Meeting Transcript [15:43]',
             confidence: 'medium',
           },
@@ -266,8 +335,8 @@ function generateDeterministicKnowledge(projectId, documents) {
         evidence: [
           {
             sourceDocName: meetingDoc,
-            excerpt: 'One urgent action item: someone needs to configure the mutual TLS (mTLS) certificates on the production Kafka ingress... Has anyone been assigned? Nobody owns it yet. No ticket was cut and no deadline was set.',
-            pageOrLocation: 'Meeting Transcript [15:52-15:54]',
+            excerpt: 'One urgent action item: someone needs to configure the mutual TLS (mTLS) certificates on the production Kafka ingress before the payment webhooks can go live.',
+            pageOrLocation: 'Meeting Transcript [15:52]',
             confidence: 'high',
           },
         ],
@@ -293,14 +362,14 @@ function generateDeterministicKnowledge(projectId, documents) {
         evidence: [
           {
             sourceDocName: qaDoc,
-            excerpt: 'Automated regression suite execution failed with a 32% error rate on non-idempotent settlement transactions. Test Suite #TR-881 (Ledger Parity Check) was skipped due to timeout errors... The service is NOT complete.',
+            excerpt: 'Automated regression suite execution failed with a 32% error rate on non-idempotent settlement transactions. Test Suite #TR-881 (Ledger Parity Check) was skipped due to timeout errors in the test harness.',
             pageOrLocation: 'Section 2.A (Data Reconciliation Service)',
             confidence: 'high',
             contradictionNote: 'Jira reports 100% complete, while automated test harness proves 32% failure rate.',
           },
           {
             sourceDocName: raciDoc,
-            excerpt: '[Row 3] Task_ID: TASK-103 | Task_Name: Data Reconciliation Engine | Owner: External Vendor Team | Status: Completed | Testing_Status: Failed 32% (Regression)',
+            excerpt: '[Row 3] Task_ID: TASK-103 | Task_Name: Data Reconciliation Engine | Owner: External Vendor Team | Deadline: 2026-10-25 | Status: Completed | Testing_Status: Failed 32% (Regression) | Notes: Reported complete on Jira but QA blocked',
             pageOrLocation: 'Row 3 in RACI Export',
             confidence: 'high',
           },
@@ -353,7 +422,7 @@ function generateDeterministicKnowledge(projectId, documents) {
           {
             sourceDocName: adrDoc,
             excerpt: 'Critical Dependency: Core Banking Gateway API v3.4 release by 3rd-party vendor (FinVance Inc.). Dependency Status: UNRESOLVED. Vendor support ticket #FV-9021 remains open without an SLA commitment or staging endpoint delivery date.',
-            pageOrLocation: 'Section 3 (Dependencies)',
+            pageOrLocation: 'Section 3 (External Dependencies & Blockers)',
             confidence: 'high',
           },
         ],
@@ -379,8 +448,8 @@ function generateDeterministicKnowledge(projectId, documents) {
         evidence: [
           {
             sourceDocName: qaDoc,
-            excerpt: 'Annual PCI-DSS Level 1 compliance audit filing is due on November 18, 2026. Blocker: Legacy cloud provider has not signed the shared responsibility attestation appendix. If not resolved within 14 business days, card processing operations will face regulatory suspension.',
-            pageOrLocation: 'Section 3 (Compliance Risks)',
+            excerpt: 'Annual PCI-DSS Level 1 compliance audit filing is due on November 18, 2026.',
+            pageOrLocation: 'Section 3 (Compliance and Audit Risks)',
             confidence: 'high',
           },
         ],
