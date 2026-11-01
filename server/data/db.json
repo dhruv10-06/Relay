@@ -98,6 +98,17 @@
       "status": "draft",
       "createdAt": "2026-11-01T10:26:50.895Z",
       "updatedAt": "2026-11-01T10:26:50.895Z"
+    },
+    {
+      "id": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "name": "Project Nexus — Core Ledger & Payment Gateway Migration",
+      "description": "Mission-critical payment gateway ledger modernization migrating legacy DynamoDB eventual-consistency persistence to PostgreSQL with TimescaleDB. Lead architect Elena Vance is departing.",
+      "targetRole": "Staff Solutions Architect & Payment Engineering Lead",
+      "departingPerson": "Elena Vance (Lead Solutions Architect)",
+      "incomingPerson": "Alex Rivera (Incoming Principal Architect)",
+      "status": "analyzing",
+      "createdAt": "2026-11-01T10:47:10.586Z",
+      "updatedAt": "2026-11-01T10:47:11.190Z"
     }
   ],
   "documents": [
@@ -1026,6 +1037,128 @@
       "fileSize": 885,
       "filePath": "C:\\Users\\dhruv shukla\\OneDrive\\dhruv code\\Relay\\server\\sample_data\\Team_RACI_and_Task_Status_Export.csv",
       "uploadedAt": "2026-11-01T10:26:27.084Z",
+      "extractedText": "CSV DATASET: Team_RACI_and_Task_Status_Export.csv\nTotal Rows: 6\nColumns: Task_ID, Task_Name, Owner, Deadline, Status, Testing_Status, Notes\n\n[Row 1] Task_ID: TASK-101 | Task_Name: TimescaleDB Schema Partitioning | Owner: Elena Vance | Deadline: 2026-10-24 | Status: In Progress | Testing_Status: Unit tests passing | Notes: Partitioning by transaction_time_bucket\n[Row 2] Task_ID: TASK-102 | Task_Name: mTLS Kafka Ingress Configuration | Owner: UNASSIGNED | Deadline: MISSING | Status: Open | Testing_Status: Not Started | Notes: External banking webhooks blocked without this\n[Row 3] Task_ID: TASK-103 | Task_Name: Data Reconciliation Engine | Owner: External Vendor Team | Deadline: 2026-10-25 | Status: Completed | Testing_Status: Failed 32% (Regression) | Notes: Reported complete on Jira but QA blocked\n[Row 4] Task_ID: TASK-104 | Task_Name: Root KMS Key 14-day Rotation Cron | Owner: Elena Vance | Deadline: 2026-11-02 | Status: Pending Review | Testing_Status: Automated cron verified | Notes: No documented rationale for 14-day frequency\n[Row 5] Task_ID: TASK-105 | Task_Name: FinVance Core Gateway v3.4 Integration | Owner: Elena Vance | Deadline: MISSING | Status: Blocked | Testing_Status: Vendor Pending | Notes: Ticket #FV-9021 awaiting vendor response\n[Row 6] Task_ID: TASK-106 | Task_Name: HikariCP Connection Pool Optimization | Owner: Elena Vance | Deadline: 2026-10-31 | Status: Draft | Testing_Status: Inferred only (120 pool) | Notes: Needs verification under 10k RPS load",
+      "wordCount": 211,
+      "status": "extracted",
+      "metadata": {
+        "originalFileName": "Team_RACI_and_Task_Status_Export.csv",
+        "fileType": "csv",
+        "pages": 1,
+        "detectedSections": [],
+        "rowCount": 6,
+        "columns": [
+          "Task_ID",
+          "Task_Name",
+          "Owner",
+          "Deadline",
+          "Status",
+          "Testing_Status",
+          "Notes"
+        ]
+      }
+    },
+    {
+      "id": "6e017b42-b5a0-468d-9154-7d1ecd3f3a45",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "fileName": "ADR-042_Ledger_Architecture.pdf",
+      "fileType": "pdf",
+      "fileSize": 40525,
+      "filePath": "C:\\Users\\dhruv shukla\\OneDrive\\dhruv code\\Relay\\server\\sample_data\\ADR-042_Ledger_Architecture.pdf",
+      "uploadedAt": "2026-11-01T10:47:11.004Z",
+      "extractedText": "Architecture Decision Record: ADR-042\nProject: Nexus Core Ledger & Payment Gateway Migration | Status: Approved | Author: Elena\nVance (Lead Solutions Architect) | Date: October 14, 2026\n1. Context & Problem Statement\nThe legacy ledger relies on a monolithic DynamoDB NoSQL cluster with custom eventual-\nconsistency resolution logic. This has caused reconciliation discrepancies exceeding $42,000\nduring high-throughput flash events. The engineering organization requires a deterministic,\nACID-compliant ledger storage solution capable of supporting 8,500 financial transactions per\nsecond with real-time auditability.\n2. Approved Decision & Rationale\nWe have decided to adopt PostgreSQL 16 with TimescaleDB hypertables for all double-entry\ntransaction ledgers, replacing the DynamoDB store.\nDocumented Rationale:\n1. Strict ACID Compliance: Immediate row-level locking and strict serializability are mandatory for\ncross-border payment settlement.\n2. Audit Query Performance: TimescaleDB hypertables provide native chunking by timestamp,\nreducing 90-day forensic audit query execution times from 4 minutes to under 650ms.\n3. Regulatory Requirements: Compliance standards (FINRA & European Central Bank DORA\ndirectives) require verifiable point-in-time state reconstruction.\nLead Owner: Elena Vance (Lead Solutions Architect)\nTarget Delivery: Sprint 43 (October 24, 2026)\nStatus: Approved and Implementation In Progress\n3. External Dependencies & Blockers\nCritical Dependency: Core Banking Gateway API v3.4 release by 3rd-party vendor (FinVance Inc.).\nDependency Status: UNRESOLVED. Vendor support ticket #FV-9021 remains open without an\nSLA commitment or staging endpoint delivery date.\n4. Key Management & Security\nA decision was recorded to rotate root AWS KMS customer-managed signing keys on a 14-day\ncycle. (Note: No rationale or compliance justification was provided for this 14-day frequency;\nstandard security policy specifies 90-day rotation).",
+      "wordCount": 258,
+      "status": "extracted",
+      "metadata": {
+        "originalFileName": "ADR-042_Ledger_Architecture.pdf",
+        "fileType": "pdf",
+        "pages": 1,
+        "detectedSections": [
+          {
+            "title": "1. Context & Problem Statement",
+            "line": 4
+          },
+          {
+            "title": "2. Approved Decision & Rationale",
+            "line": 10
+          },
+          {
+            "title": "3. External Dependencies & Blockers",
+            "line": 23
+          },
+          {
+            "title": "4. Key Management & Security",
+            "line": 27
+          }
+        ],
+        "pdfInfo": {
+          "PDFFormatVersion": "1.4",
+          "IsAcroFormPresent": false,
+          "IsXFAPresent": false,
+          "Title": "about:blank",
+          "Creator": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+          "Producer": "Skia/PDF m156",
+          "CreationDate": "D:20261101101448+00'00'",
+          "ModDate": "D:20261101101448+00'00'"
+        }
+      }
+    },
+    {
+      "id": "f5b77276-2a3f-4503-8fa0-80c63227c924",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "fileName": "Release_Readiness_and_QA_Report.docx",
+      "fileType": "docx",
+      "fileSize": 10559,
+      "filePath": "C:\\Users\\dhruv shukla\\OneDrive\\dhruv code\\Relay\\server\\sample_data\\Release_Readiness_and_QA_Report.docx",
+      "uploadedAt": "2026-11-01T10:47:11.136Z",
+      "extractedText": "Release Readiness & QA Audit Report: Q4 Milestone\n\nDocument ID: QA-REL-2026-10-28 | Author: Sarah Chen (Principal QA & Reliability Engineer) | Date: October 28, 2026\n\n1. Executive Summary & Verdict\n\nOVERALL STATUS: BLOCKED. The candidate release v2.4-RC3 cannot be promoted to production due to critical test regressions and conflicting configuration states across core microservices.\n\n2. Service Verification Findings\n\nA. Data Reconciliation Service\n\nJira Status: Marked as \"COMPLETED\" (100% progress logged by external contract team).\nQA Verification Reality: Automated regression suite execution failed with a 32% error rate on non-idempotent settlement transactions. Test Suite #TR-881 (Ledger Parity Check) was skipped due to timeout errors in the test harness.\nAudit Finding: The service is NOT complete. Promoting this service to production will cause ledger imbalance under concurrent loads.\n\nB. Redis Caching Cluster Configuration\n\nCurrent Deployed Configuration: DevOps deployed the production Redis cluster with eviction policy set to LFU (Least Frequently Used) with maxmemory 8GB, following infra ticket INFRA-409.\nConflict Warning: This directly conflicts with the architectural decision recorded in engineering syncs specifying LRU (Least Recently Used) with 4GB. This mismatch causes cache pollution under periodic batch jobs.\n\n3. Compliance and Audit Risks\n\nUrgent Risk: Annual PCI-DSS Level 1 compliance audit filing is due on November 18, 2026.\nBlocker: Legacy cloud provider has not signed the shared responsibility attestation appendix. If not resolved within 14 business days, card processing operations will face regulatory suspension.",
+      "wordCount": 231,
+      "status": "extracted",
+      "metadata": {
+        "originalFileName": "Release_Readiness_and_QA_Report.docx",
+        "fileType": "docx",
+        "pages": 1,
+        "detectedSections": [
+          {
+            "title": "1. Executive Summary & Verdict",
+            "line": 5
+          },
+          {
+            "title": "2. Service Verification Findings",
+            "line": 9
+          },
+          {
+            "title": "3. Compliance and Audit Risks",
+            "line": 22
+          }
+        ]
+      }
+    },
+    {
+      "id": "d7b3416a-0261-4400-afd2-dac646adcca4",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "fileName": "Sprint_44_Handover_Meeting_Notes.txt",
+      "fileType": "txt",
+      "fileSize": 1998,
+      "filePath": "C:\\Users\\dhruv shukla\\OneDrive\\dhruv code\\Relay\\server\\sample_data\\Sprint_44_Handover_Meeting_Notes.txt",
+      "uploadedAt": "2026-11-01T10:47:11.143Z",
+      "extractedText": "================================================================================\nSPRINT 44 HANDOVER & ENGINEERING TRANSITION SYNC\nProject: Nexus Core Ledger & Payment Gateway Migration\nDate: October 26, 2026 | 15:30 - 16:45 IST\nAttendees: Elena Vance (Departing Lead Architect), Marcus Brody (Eng Director),\n Devon Patel (Backend Lead)\nTranscription Summary: Automated Recording Review\n================================================================================\n\n[15:32] Marcus: Elena, with your last day coming up next Friday, we need to run through the critical infrastructure handover and loose ends.\n\n[15:35] Elena: Sure. Regarding the Redis caching layer in front of the ledger accounts: we agreed that the eviction policy must be LRU (Least Recently Used) with maxmemory set to 4GB. That will prevent OOM crashes when burst spikes arrive.\n\n[15:41] Devon: What about the database connection pooling for PostgreSQL under peak load?\n\n[15:43] Elena: We didn't finish the formal stress benchmark, but based on the informal test runs I saw in dev, I think max_connections should probably be set to 120 with HikariCP minIdle of 30. That's my strong recommendation, though Devon should verify it before greenlighting Black Friday traffic.\n\n[15:52] Elena: One urgent action item: someone needs to configure the mutual TLS (mTLS) certificates on the production Kafka ingress before the payment webhooks can go live. If that's not done, external banks will reject the payload handshakes.\n\n[15:53] Marcus: Has anyone been assigned to that? Who owns it? When is it due?\n\n[15:54] Elena: Nobody owns it yet. It was discussed in the platform channel last Wednesday, but no ticket was cut and no deadline was set. Make sure that doesn't slip through the cracks.\n\n[16:02] Elena: On the Data Reconciliation Service: I saw on the Jira board that the ticket is marked as \"Completed - 100%\". \n\n[16:10] Marcus: Okay, please make sure all your branch PRs are pushed to main before your exit on Nov 6.",
+      "wordCount": 297,
+      "status": "extracted",
+      "metadata": {
+        "originalFileName": "Sprint_44_Handover_Meeting_Notes.txt",
+        "fileType": "txt",
+        "pages": 1,
+        "detectedSections": []
+      }
+    },
+    {
+      "id": "45f8ae20-344a-4450-831d-6aca46a7490b",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "fileName": "Team_RACI_and_Task_Status_Export.csv",
+      "fileType": "csv",
+      "fileSize": 885,
+      "filePath": "C:\\Users\\dhruv shukla\\OneDrive\\dhruv code\\Relay\\server\\sample_data\\Team_RACI_and_Task_Status_Export.csv",
+      "uploadedAt": "2026-11-01T10:47:11.174Z",
       "extractedText": "CSV DATASET: Team_RACI_and_Task_Status_Export.csv\nTotal Rows: 6\nColumns: Task_ID, Task_Name, Owner, Deadline, Status, Testing_Status, Notes\n\n[Row 1] Task_ID: TASK-101 | Task_Name: TimescaleDB Schema Partitioning | Owner: Elena Vance | Deadline: 2026-10-24 | Status: In Progress | Testing_Status: Unit tests passing | Notes: Partitioning by transaction_time_bucket\n[Row 2] Task_ID: TASK-102 | Task_Name: mTLS Kafka Ingress Configuration | Owner: UNASSIGNED | Deadline: MISSING | Status: Open | Testing_Status: Not Started | Notes: External banking webhooks blocked without this\n[Row 3] Task_ID: TASK-103 | Task_Name: Data Reconciliation Engine | Owner: External Vendor Team | Deadline: 2026-10-25 | Status: Completed | Testing_Status: Failed 32% (Regression) | Notes: Reported complete on Jira but QA blocked\n[Row 4] Task_ID: TASK-104 | Task_Name: Root KMS Key 14-day Rotation Cron | Owner: Elena Vance | Deadline: 2026-11-02 | Status: Pending Review | Testing_Status: Automated cron verified | Notes: No documented rationale for 14-day frequency\n[Row 5] Task_ID: TASK-105 | Task_Name: FinVance Core Gateway v3.4 Integration | Owner: Elena Vance | Deadline: MISSING | Status: Blocked | Testing_Status: Vendor Pending | Notes: Ticket #FV-9021 awaiting vendor response\n[Row 6] Task_ID: TASK-106 | Task_Name: HikariCP Connection Pool Optimization | Owner: Elena Vance | Deadline: 2026-10-31 | Status: Draft | Testing_Status: Inferred only (120 pool) | Notes: Needs verification under 10k RPS load",
       "wordCount": 211,
       "status": "extracted",
@@ -3009,6 +3142,259 @@
       "updatedAt": "2026-11-01T10:26:41.174Z",
       "reviewedAt": "2026-11-01T10:26:41.174Z",
       "reviewNote": "Approved in bulk review"
+    },
+    {
+      "id": "bd9daa4d-b710-4b30-b03d-b87311024860",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "decision",
+      "title": "Adopt PostgreSQL 16 with TimescaleDB Hypertables for Core Ledger",
+      "description": "Replaced legacy DynamoDB NoSQL cluster with PostgreSQL 16 and TimescaleDB hypertables to guarantee transactional determinism and point-in-time audit trail compliance.",
+      "rationale": "Strict ACID Compliance: Immediate row-level locking and strict serializability are mandatory for cross-border payment settlement. TimescaleDB hypertables reduce 90-day forensic audit query execution times from 4 minutes to under 650ms.",
+      "owner": "Elena Vance (Lead Solutions Architect)",
+      "deadline": "Sprint 43 (October 24, 2026)",
+      "status": "Approved & In Progress",
+      "knowledgeState": "supported",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "ADR-042_Ledger_Architecture.pdf",
+          "excerpt": "We have decided to adopt PostgreSQL 16 with TimescaleDB hypertables for all double-entry transaction ledgers, replacing the DynamoDB store.",
+          "pageOrLocation": "Section 2 (Approved Decision & Rationale)",
+          "confidence": "high"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": false,
+      "detectedGaps": [],
+      "continuationTimeframe": "None",
+      "continuationAction": "",
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
+    },
+    {
+      "id": "8054bfd0-2c15-4117-b3d2-9c0be16ad148",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "task",
+      "title": "PostgreSQL Database Connection Pool Sizing (HikariCP max_connections=120)",
+      "description": "Recommendation to configure database connection pool to max_connections=120 and minIdle=30 before peak traffic. Benchmark stress test has not been formally conducted.",
+      "rationale": "Informal test runs observed in development environment; no formal load benchmark report exists on record.",
+      "owner": "Devon Patel (Backend Lead)",
+      "deadline": "2026-10-31",
+      "status": "Draft / Unverified",
+      "knowledgeState": "inferred",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "Sprint_44_Handover_Meeting_Notes.txt",
+          "excerpt": "We didn't finish the formal stress benchmark, but based on the informal test runs I saw in dev, I think max_connections should probably be set to 120 with HikariCP minIdle of 30. That's my strong recommendation, though Devon should verify it before greenlighting Black Friday traffic.",
+          "pageOrLocation": "Meeting Transcript [15:43]",
+          "confidence": "medium"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": false,
+      "detectedGaps": [
+        "Inferred Context: Deduced from informal discussions or partial comments; lacks formal benchmark verification."
+      ],
+      "continuationTimeframe": "None",
+      "continuationAction": "",
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
+    },
+    {
+      "id": "2cd1c11f-527a-45a7-b533-b504814e462f",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "decision",
+      "title": "Redis Cache Cluster Eviction Policy & Memory Limit Mismatch",
+      "description": "Direct contradiction between architectural agreement and deployed infrastructure: Meeting notes mandate LRU (Least Recently Used) with 4GB RAM, whereas QA report reveals DevOps deployed LFU (Least Frequently Used) with 8GB.",
+      "rationale": "Conflict causes cache pollution and unpredictable key evictions during periodic batch runs.",
+      "owner": "DevOps / Platform Team",
+      "deadline": "Immediate (Release Blocker)",
+      "status": "Contradicted Configuration",
+      "knowledgeState": "contradicted",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "Sprint_44_Handover_Meeting_Notes.txt",
+          "excerpt": "Regarding the Redis caching layer in front of the ledger accounts: we agreed that the eviction policy must be LRU (Least Recently Used) with maxmemory set to 4GB.",
+          "pageOrLocation": "Meeting Transcript [15:35]",
+          "confidence": "high",
+          "contradictionNote": "Mandates LRU with 4GB"
+        },
+        {
+          "sourceDocName": "Release_Readiness_and_QA_Report.docx",
+          "excerpt": "DevOps deployed the production Redis cluster with eviction policy set to LFU (Least Frequently Used) with maxmemory 8GB, following infra ticket INFRA-409.",
+          "pageOrLocation": "Section 2.B (Redis Configuration)",
+          "confidence": "high",
+          "contradictionNote": "Deployed as LFU with 8GB, directly violating engineering agreement"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": true,
+      "continuationTimeframe": "Hour 8-16",
+      "continuationAction": "Align platform team and reconcile Redis eviction policy (LRU vs LFU) before v2.4 promotion.",
+      "detectedGaps": [
+        "Conflicting Evidence: Discrepancy detected between multiple authorized project documents."
+      ],
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
+    },
+    {
+      "id": "1aed9a66-85a3-4a37-b992-77c253dfa761",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "task",
+      "title": "Configure Mutual TLS (mTLS) Certificates on Production Kafka Ingress",
+      "description": "Production Kafka ingress lacks mTLS certificate configuration. External bank payment webhooks will fail SSL/TLS handshake until certificates are provisioned and bound.",
+      "rationale": "External banking partners require strict cryptographic client certificate authentication for inbound webhooks.",
+      "owner": "Unassigned",
+      "deadline": "Missing",
+      "status": "Open / Unassigned",
+      "knowledgeState": "missing",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "Sprint_44_Handover_Meeting_Notes.txt",
+          "excerpt": "One urgent action item: someone needs to configure the mutual TLS (mTLS) certificates on the production Kafka ingress before the payment webhooks can go live.",
+          "pageOrLocation": "Meeting Transcript [15:52]",
+          "confidence": "high"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": true,
+      "continuationTimeframe": "Hour 0-4",
+      "continuationAction": "Assign urgent owner for: Configure Mutual TLS (mTLS) Certificates on Production Kafka Ingress",
+      "detectedGaps": [
+        "Missing Owner: Action item has no designated assignee or responsible lead.",
+        "Missing Deadline: No delivery milestone, target date, or SLA committed."
+      ],
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
+    },
+    {
+      "id": "a2f7f93e-51aa-4a56-8984-fda314d68417",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "task",
+      "title": "Data Reconciliation Service (Prematurely Marked Complete)",
+      "description": "Jira issue RECON-104 was logged as 100% completed by contract team, but QA automated regression test failed with a 32% error rate and the ledger parity suite timed out.",
+      "rationale": "Deploying in current state will induce financial ledger imbalance under concurrent multi-region workloads.",
+      "owner": "External Vendor Team",
+      "deadline": "2026-10-25",
+      "status": "Completed (False Positive / QA Blocked)",
+      "knowledgeState": "contradicted",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "Release_Readiness_and_QA_Report.docx",
+          "excerpt": "Automated regression suite execution failed with a 32% error rate on non-idempotent settlement transactions. Test Suite #TR-881 (Ledger Parity Check) was skipped due to timeout errors in the test harness.",
+          "pageOrLocation": "Section 2.A (Data Reconciliation Service)",
+          "confidence": "high",
+          "contradictionNote": "Jira reports 100% complete, while automated test harness proves 32% failure rate."
+        },
+        {
+          "sourceDocName": "Team_RACI_and_Task_Status_Export.csv",
+          "excerpt": "[Row 3] Task_ID: TASK-103 | Task_Name: Data Reconciliation Engine | Owner: External Vendor Team | Deadline: 2026-10-25 | Status: Completed | Testing_Status: Failed 32% (Regression) | Notes: Reported complete on Jira but QA blocked",
+          "pageOrLocation": "Row 3 in RACI Export",
+          "confidence": "high"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": true,
+      "continuationTimeframe": "Hour 4-8",
+      "continuationAction": "Audit test failure & reopen task: Data Reconciliation Service (Prematurely Marked Complete)",
+      "detectedGaps": [
+        "Premature Completion Discrepancy: Marked complete on task board but test suite failed or was skipped in QA verification.",
+        "Conflicting Evidence: Discrepancy detected between multiple authorized project documents."
+      ],
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
+    },
+    {
+      "id": "33b7a251-9a33-48cb-9e83-b93187d8853c",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "decision",
+      "title": "Rotate Root AWS KMS Customer-Managed Signing Keys on 14-Day Cycle",
+      "description": "Decision was recorded to rotate root cryptographic signing keys every 14 days, deviating from standard 90-day security policy. No justification or architectural rationale was provided.",
+      "rationale": "Missing",
+      "owner": "Elena Vance (Lead Solutions Architect)",
+      "deadline": "2026-11-02",
+      "status": "Pending Review",
+      "knowledgeState": "missing",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "ADR-042_Ledger_Architecture.pdf",
+          "excerpt": "A decision was recorded to rotate root AWS KMS customer-managed signing keys on a 14-day cycle. (Note: No rationale or compliance justification was provided for this 14-day frequency; standard security policy specifies 90-day rotation).",
+          "pageOrLocation": "Section 4 (Key Management & Security)",
+          "confidence": "high"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": false,
+      "detectedGaps": [
+        "Missing Rationale: Architectural decision recorded without documented technical or business justification."
+      ],
+      "continuationTimeframe": "None",
+      "continuationAction": "",
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
+    },
+    {
+      "id": "e24169ec-c301-4cec-a9d4-2ab731c11926",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "dependency",
+      "title": "Core Banking Gateway API v3.4 Integration (FinVance Inc.)",
+      "description": "External dependency on FinVance Inc. for release v3.4 API endpoints. Vendor support ticket #FV-9021 remains open without delivery commitment or staging endpoint availability.",
+      "rationale": "Critical integration requirement for processing SEPA and FedNow instant rail settlements.",
+      "owner": "Elena Vance / FinVance Vendor Liaison",
+      "deadline": "Missing (Pending SLA)",
+      "status": "Blocked / Unresolved",
+      "knowledgeState": "missing",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "ADR-042_Ledger_Architecture.pdf",
+          "excerpt": "Critical Dependency: Core Banking Gateway API v3.4 release by 3rd-party vendor (FinVance Inc.). Dependency Status: UNRESOLVED. Vendor support ticket #FV-9021 remains open without an SLA commitment or staging endpoint delivery date.",
+          "pageOrLocation": "Section 3 (External Dependencies & Blockers)",
+          "confidence": "high"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": true,
+      "continuationTimeframe": "Hour 4-8",
+      "continuationAction": "Escalate vendor ticket #FV-9021 with FinVance technical account manager to unblock API v3.4 specs.",
+      "detectedGaps": [
+        "Unresolved External Dependency: Blocking dependency has no confirmed SLA or delivery date."
+      ],
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
+    },
+    {
+      "id": "2c7e93fa-ec26-4456-aa16-8fb65bf9378c",
+      "projectId": "3ffd8a59-be17-427b-a2ac-efc30048c12c",
+      "category": "risk",
+      "title": "Annual PCI-DSS Level 1 Compliance Audit Filing Due in 18 Days",
+      "description": "Legacy cloud provider has not signed the shared responsibility attestation appendix. Inability to submit by November 18, 2026 will trigger regulatory suspension of payment processing.",
+      "rationale": "Payment Card Industry Data Security Standard requires active signed attestation from all third-party hosting providers.",
+      "owner": "Sarah Chen (QA Lead) / Compliance Officer",
+      "deadline": "2026-11-18",
+      "status": "High Risk / Impending Deadline",
+      "knowledgeState": "supported",
+      "evidenceValidation": "verified",
+      "evidence": [
+        {
+          "sourceDocName": "Release_Readiness_and_QA_Report.docx",
+          "excerpt": "Annual PCI-DSS Level 1 compliance audit filing is due on November 18, 2026.",
+          "pageOrLocation": "Section 3 (Compliance and Audit Risks)",
+          "confidence": "high"
+        }
+      ],
+      "reviewStatus": "pending",
+      "isContinuationPriority": false,
+      "continuationTimeframe": "Hour 16-24",
+      "continuationAction": "Brief executive committee and initiate legal escalation with legacy cloud vendor for PCI-DSS signoff.",
+      "detectedGaps": [],
+      "createdAt": "2026-11-01T10:47:11.185Z",
+      "updatedAt": "2026-11-01T10:47:11.185Z"
     }
   ],
   "handovers": [
