@@ -28,13 +28,21 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Health & System Info Route
 app.get('/api/health', (req, res) => {
+  const hasLiveKey = !!(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY);
+  const activeEngine = process.env.GEMINI_API_KEY 
+    ? 'Google Gemini API' 
+    : (process.env.GROQ_API_KEY 
+      ? 'Groq API' 
+      : (process.env.OPENAI_API_KEY ? 'OpenAI API' : 'Deterministic Demo Engine (Offline/Zero-Key)'));
+
   res.json({
     status: 'ok',
     product: 'RELAY',
     version: '2.0.0-round2',
     timestamp: new Date().toISOString(),
     storageEngine: db.getStorageMode(),
-    aiMode: process.env.OPENAI_API_KEY ? 'Live LLM API Enabled' : 'Deterministic Demo Mode Ready',
+    aiMode: hasLiveKey ? 'Live LLM API Enabled' : 'Deterministic Demo Mode Ready',
+    activeAiEngine: activeEngine,
   });
 });
 
