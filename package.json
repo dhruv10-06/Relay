@@ -1,0 +1,16 @@
+{
+  "name": "relay-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RELAY — Never let critical project knowledge leave with people",
+  "scripts": {
+    "client": "npm --prefix client run dev",
+    "server": "npm --prefix server run dev",
+    "start": "node server/server.js",
+    "build": "npm --prefix client run build",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

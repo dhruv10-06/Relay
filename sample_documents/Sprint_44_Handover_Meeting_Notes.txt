@@ -1,0 +1,26 @@
+================================================================================
+SPRINT 44 HANDOVER & ENGINEERING TRANSITION SYNC
+Project: Nexus Core Ledger & Payment Gateway Migration
+Date: October 26, 2026 | 15:30 - 16:45 IST
+Attendees: Elena Vance (Departing Lead Architect), Marcus Brody (Eng Director),
+           Devon Patel (Backend Lead)
+Transcription Summary: Automated Recording Review
+================================================================================
+
+[15:32] Marcus: Elena, with your last day coming up next Friday, we need to run through the critical infrastructure handover and loose ends.
+
+[15:35] Elena: Sure. Regarding the Redis caching layer in front of the ledger accounts: we agreed that the eviction policy must be LRU (Least Recently Used) with maxmemory set to 4GB. That will prevent OOM crashes when burst spikes arrive.
+
+[15:41] Devon: What about the database connection pooling for PostgreSQL under peak load?
+
+[15:43] Elena: We didn't finish the formal stress benchmark, but based on the informal test runs I saw in dev, I think max_connections should probably be set to 120 with HikariCP minIdle of 30. That's my strong recommendation, though Devon should verify it before greenlighting Black Friday traffic.
+
+[15:52] Elena: One urgent action item: someone needs to configure the mutual TLS (mTLS) certificates on the production Kafka ingress before the payment webhooks can go live. If that's not done, external banks will reject the payload handshakes.
+
+[15:53] Marcus: Has anyone been assigned to that? Who owns it? When is it due?
+
+[15:54] Elena: Nobody owns it yet. It was discussed in the platform channel last Wednesday, but no ticket was cut and no deadline was set. Make sure that doesn't slip through the cracks.
+
+[16:02] Elena: On the Data Reconciliation Service: I saw on the Jira board that the ticket is marked as "Completed - 100%". 
+
+[16:10] Marcus: Okay, please make sure all your branch PRs are pushed to main before your exit on Nov 6.

@@ -1,0 +1,7 @@
+Task_ID,Task_Name,Owner,Deadline,Status,Testing_Status,Notes
+TASK-101,TimescaleDB Schema Partitioning,Elena Vance,2026-10-24,In Progress,Unit tests passing,Partitioning by transaction_time_bucket
+TASK-102,mTLS Kafka Ingress Configuration,UNASSIGNED,MISSING,Open,Not Started,External banking webhooks blocked without this
+TASK-103,Data Reconciliation Engine,External Vendor Team,2026-10-25,Completed,Failed 32% (Regression),Reported complete on Jira but QA blocked
+TASK-104,Root KMS Key 14-day Rotation Cron,Elena Vance,2026-11-02,Pending Review,Automated cron verified,No documented rationale for 14-day frequency
+TASK-105,FinVance Core Gateway v3.4 Integration,Elena Vance,MISSING,Blocked,Vendor Pending,Ticket #FV-9021 awaiting vendor response
+TASK-106,HikariCP Connection Pool Optimization,Elena Vance,2026-10-31,Draft,Inferred only (120 pool),Needs verification under 10k RPS load
